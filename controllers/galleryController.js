@@ -7,26 +7,26 @@ exports.createGalleryItem = async (req, res) => {
   try {
     const { title, description, category } = req.body;
 
-    // ✅ Cloudinary image URL
-    const image = req.file ? req.file.path : '';
+    // ✅ Cloudinary secure URL
+    const image = req.file ? req.file.path : null;
 
     const galleryItem = new Gallery({
       title,
       description,
       category,
-      image,          // IMPORTANT: store Cloudinary URL
+      image,           // ✅ store full Cloudinary URL
       isActive: true,
     });
 
     await galleryItem.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: galleryItem,
     });
   } catch (error) {
     console.error('Create Gallery Error:', error);
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -35,20 +35,21 @@ exports.createGalleryItem = async (req, res) => {
 ========================= */
 exports.getAllGalleryItems = async (req, res) => {
   try {
-    const items = await Gallery.find({ isActive: true })
-      .sort({ createdAt: -1 });
+    const items = await Gallery.find({ isActive: true }).sort({
+      createdAt: -1,
+    });
 
-    res.json({
+    return res.json({
       success: true,
       data: items,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 /* =========================
-   GET BY ID
+   GET GALLERY ITEM BY ID
 ========================= */
 exports.getGalleryItemById = async (req, res) => {
   try {
@@ -58,12 +59,12 @@ exports.getGalleryItemById = async (req, res) => {
       return res.status(404).json({ error: 'Gallery item not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: item,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -73,11 +74,13 @@ exports.getGalleryItemById = async (req, res) => {
 exports.updateGalleryItem = async (req, res) => {
   try {
     const updates = {
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description,
+      category: req.body.category,
       updatedAt: Date.now(),
     };
 
-    // ✅ If new image uploaded → replace with Cloudinary URL
+    // ✅ Replace image only if new file uploaded
     if (req.file) {
       updates.image = req.file.path;
     }
@@ -92,17 +95,17 @@ exports.updateGalleryItem = async (req, res) => {
       return res.status(404).json({ error: 'Gallery item not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: item,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 /* =========================
-   DELETE (SOFT DELETE)
+   DELETE GALLERY ITEM (SOFT)
 ========================= */
 exports.deleteGalleryItem = async (req, res) => {
   try {
@@ -116,28 +119,29 @@ exports.deleteGalleryItem = async (req, res) => {
       return res.status(404).json({ error: 'Gallery item not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Gallery item deleted successfully',
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
 /* =========================
-   ADMIN: GET ALL
+   ADMIN: GET ALL ITEMS
 ========================= */
 exports.getAllGalleryItemsAdmin = async (req, res) => {
   try {
-    const items = await Gallery.find()
-      .sort({ createdAt: -1 });
+    const items = await Gallery.find().sort({
+      createdAt: -1,
+    });
 
-    res.json({
+    return res.json({
       success: true,
       data: items,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
